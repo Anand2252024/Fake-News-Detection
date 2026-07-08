@@ -16,8 +16,16 @@ MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "model.jobl
 
 def load_or_train_model():
     os.makedirs(os.path.join(os.path.dirname(__file__), "..", "models"), exist_ok=True)
+
     if os.path.exists(MODEL_PATH):
-        return joblib.load(MODEL_PATH)
+        try:
+            model = joblib.load(MODEL_PATH)
+            # Sanity check that the loaded model is usable with the current sklearn version.
+            model.predict_proba(["sanity check"])
+            return model
+        except Exception:
+            os.remove(MODEL_PATH)
+
     # Train on sample data
     data_path = os.path.join(os.path.dirname(__file__), "..", "data", "sample_train.csv")
     if not os.path.exists(data_path):
